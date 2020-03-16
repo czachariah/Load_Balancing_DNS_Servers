@@ -54,11 +54,13 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
 
     try:
         msg_ts1 = ts1.recv(500)
+        return msg_ts1
     except socket.timeout:
         msg_ts1 = "nothing"
 
     try:
         msg_ts2 = ts2.recv(500)
+        return msg_ts2
     except socket.timeout:
         msg_ts2 = "nothing"
 
