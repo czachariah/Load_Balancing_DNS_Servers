@@ -56,21 +56,11 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
         msg_ts1 = ts1.recv(500)
         return msg_ts1
     except socket.timeout:
-        msg_ts1 = "nothing"
-
-    try:
-        msg_ts2 = ts2.recv(500)
-        return msg_ts2
-    except socket.timeout:
-        msg_ts2 = "nothing"
-
-    if msg_ts1 != "nothing":
-        return msg_ts1
-
-    if msg_ts2 != "nothing":
-        return msg_ts2
-
-    return "NOTHING"
+        try:
+            msg_ts2 = ts2.recv(500)
+            return msg_ts2
+        except socket.timeout:
+            return "NOTHING"
 
 
 # create the socket for the rs server
@@ -104,7 +94,6 @@ while True:
     if msg == "NOTHING":
         msg = "" + data_from_client + " - " + "Error:HOST NOT FOUND"
 
-    print("message : " + str(msg))
     # send message back to the client
     csockid.send(str(msg))
 
