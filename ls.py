@@ -1,8 +1,6 @@
-import threading
 import socket
 import sys
 import select
-import Queue
 
 # need to make sure that the port number is given as an argument
 
@@ -52,16 +50,34 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
     ts2.send(message.encode('utf-8'))
     print("[LS]: Sending host name " + message + " to both the servers for IP lookup ...\n")
 
-    try:
-        msg_ts1 = ts1.recv(500)
-        return msg_ts1
-    except socket.timeout:
-        try:
-            msg_ts2 = ts2.recv(500)
-            return msg_ts2
-        except socket.timeout:
-            return "NOTHING"
+    inputs = [ts1, ts2]
+    outputs = []
+    message_queues = {}
 
+    while inputs:
+        readable, writable, exceptional = select.select(inputs, outputs, inputs, 8)
+        for s in readable:
+            if s is ts1:
+                data = s.recv(1024)
+                if data:
+                    return data
+                else:
+                    readable.remove(s)
+                    inputs.remove(s)
+                    s.close()
+
+            if s is ts2:
+                data = s.recv(1024)
+                if data:
+                   return data
+                else:
+                    readable.remove(s)
+                    inputs.remove(s)
+                    s.close()
+
+        if not (readable or writable or exceptional):
+            print("Timed Out.")
+            return "NOTHING"
 
 # create the socket for the rs server
 try:
@@ -106,5 +122,15 @@ if __name__ == "__main__":
 
 
 '''
+Other way to read from TS servers:
 
+ try:
+        msg_ts1 = ts1.recv(500)
+        return msg_ts1
+    except socket.timeout:
+        try:
+            msg_ts2 = ts2.recv(500)
+            return msg_ts2
+        except socket.timeout:
+            return "NOTHING"
 '''
