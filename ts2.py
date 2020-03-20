@@ -2,6 +2,11 @@ import threading
 import socket
 import sys
 
+# main
+if __name__ == "__main__":
+    TS2 = threading.Thread(name='TS2server')
+    TS2.start()
+
 # need to make sure that the port number is given as an argument
 if len(sys.argv) != 2:
     print("[TS2]: ERROR: Need to include a listen port argument.")
@@ -22,7 +27,7 @@ def insertIntoTable(count,word,table):
                 return
 
 
-# store the URLs and IPs from PROJ2-DNSTS1.txt
+# store the URLs and IPs from PROJ2-DNSTS2.txt
 DNSTable = []
 count = 0
 
@@ -76,14 +81,13 @@ host = socket.gethostname()
 print("[TS2]: Server host name is {}".format(host))
 localhost_ip = (socket.gethostbyname(host))
 print("[TS2]: Server IP address is {}".format(localhost_ip))
+print("\n")
 
-found = False
 # get list of host names to check for
 while True:
     csockid, addr = ts2.accept()
     print ("[TS2]: Got a connection request from a client at {}".format(addr))
 
-    found = False
     data_from_client = csockid.recv(500)
     print("[TS2]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
@@ -95,13 +99,4 @@ while True:
             print("[TS1]; IP found: " + msg + "\n")
             print("Now sending back to LS")
             csockid.send(msg.encode('utf-8'))
-            found = True
-
-
-# Close the server socket
-ts2.close()
-exit()
-
-if __name__ == "__main__":
-    TS2 = threading.Thread(name='TS2server')
-    TS2.start()
+    print("\n")

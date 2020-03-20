@@ -2,6 +2,11 @@ import threading
 import socket
 import sys
 
+# main
+if __name__ == "__main__":
+    TS1 = threading.Thread(name='TS1server')
+    TS1.start()
+
 # need to make sure that the port number is given as an argument
 if len(sys.argv) != 2:
     print("[TS1]: ERROR: Need to include a listen port argument.")
@@ -76,14 +81,13 @@ host = socket.gethostname()
 print("[TS1]: Server host name is {}".format(host))
 localhost_ip = (socket.gethostbyname(host))
 print("[TS1]: Server IP address is {}".format(localhost_ip))
+print("\n")
 
-found = False
 # get list of host names to check for
 while True:
     csockid, addr = ts1.accept()
     print ("[TS1]: Got a connection request from a client at {}".format(addr))
 
-    found = False
     data_from_client = csockid.recv(500)
     print("[TS1]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
@@ -92,16 +96,6 @@ while True:
         hostToCheck = DNSTable[word][0].lower()
         if data_from_client == hostToCheck:
             msg = DNSTable[word][0] + " " + DNSTable[word][1] + " " + DNSTable[word][2]
-            print("[TS1]; IP found: " + msg + "\n")
-            print("Now sending back to LS")
+            print("[TS1]; IP found: " + msg + " , now sending back to LS ... ")
             csockid.send(msg.encode('utf-8'))
-            found = True
-
-
-# Close the server socket
-ts1.close()
-exit()
-
-if __name__ == "__main__":
-    TS1 = threading.Thread(name='TS1server')
-    TS1.start()
+    print("\n")
