@@ -2,6 +2,7 @@ import socket
 import sys
 import select
 import threading
+from multiprocessing.pool import ThreadPool
 
 # main
 if __name__ == "__main__":
@@ -47,8 +48,8 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
     # now connect to the TS1 and TS2 servers
     ts1_server_binding = (ts1_addr, TS1PortNum)
     ts2_server_binding = (ts2_addr, TS2PortNum)
-    ts1.settimeout(8)
-    ts2.settimeout(8)
+    ts1.settimeout(5)
+    ts2.settimeout(5)
     ts1.connect(ts1_server_binding)
     ts2.connect(ts2_server_binding)
     print("[LS]; Connected to the TS1 and TS2 servers.\n")
@@ -63,7 +64,7 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
     inputs = [ts1, ts2]
     while inputs:
         # select will return 3 types of lists (respectively) : read_from , write_to , exceptions
-        readable, writable, exceptional = select.select(inputs, [], [], 8)
+        readable, writable, exceptional = select.select(inputs, [], [], 5)
         # we only care about reading from the TS sockets, so look into both sockets to get an IP
         for s in readable:
             # trying to get info from TS1
@@ -106,7 +107,7 @@ except socket.error as err:
 # bind the socket to the port to listen for clients
 server_binding = ('', lsPortNum)
 ls.bind(server_binding)
-ls.listen(1)
+ls.listen(10)
 host = socket.gethostname()
 print("[LS]: Server host name is {}".format(host))
 localhost_ip = (socket.gethostbyname(host))
@@ -121,13 +122,19 @@ while True:
     data_from_client = csockid.recv(500)
     print("[LS]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
-    # send the message to the TS servers
-    msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
+    # make a thread pool to send the TS servers the URL to look up
+    pool = ThreadPool(processes=10)
+    pool_results = pool.apply_async(connectToTSServers, (data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum))
+
+    # get the return value
+    msg = pool_results.get()
+
+    # msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
 
     if msg == "NOTHING":
         msg = "" + data_from_client + " - " + "Error:HOST NOT FOUND"
 
-    print("[LS]: Message from TS server: " + msg + " , now sending to client ...")
+    print("[LS]: Message from TS server: " + str(msg) + " , now sending to client ...")
     # send message back to the client
     csockid.send(str(msg))
     print("\n")
