@@ -2,7 +2,6 @@ import socket
 import sys
 import select
 import threading
-from multiprocessing.pool import ThreadPool
 
 # main
 if __name__ == "__main__":
@@ -122,14 +121,7 @@ while True:
     data_from_client = csockid.recv(500)
     print("[LS]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
-    # make a thread pool to send the TS servers the URL to look up
-    pool = ThreadPool(processes=10)
-    pool_results = pool.apply_async(connectToTSServers, (data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum))
-
-    # get the return value
-    msg = pool_results.get()
-
-    # msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
+    msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
 
     if msg == "NOTHING":
         msg = "" + data_from_client + " - " + "Error:HOST NOT FOUND"
@@ -138,3 +130,15 @@ while True:
     # send message back to the client
     csockid.send(str(msg))
     print("\n")
+
+
+'''
+# make a thread pool to send the TS servers the URL to look up
+    pool = ThreadPool(processes=10)
+    pool_results = pool.apply_async(connectToTSServers, (data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum))
+
+    # get the return value
+    msg = pool_results.get()
+
+    # 
+'''
