@@ -50,13 +50,17 @@ for x in listOfHostNames:
         print('[C]: Socket Open Error: {} \n'.format(err))
         exit()
 
-    # get the host name and the port number ready to be ready to connect to the LS server
-    ls_addr = socket.gethostbyname(lsHostName)
+    try:
+        # get the host name and the port number ready to be ready to connect to the LS server
+        ls_addr = socket.gethostbyname(lsHostName)
 
-    # now connect to the LS server
-    ls_server_binding = (ls_addr, lsPortNum)
-    ls.connect(ls_server_binding)
-    print("[C]: Connected to the LS server.")
+        # now connect to the LS server
+        ls_server_binding = (ls_addr, lsPortNum)
+        ls.connect(ls_server_binding)
+        print("[C]: Connected to the LS server.")
+    except:
+        print("[C]: There was a problem connecting to the LS server. Please try again.")
+        exit()
 
     # send LS the host name to look up
     message = x.lower()

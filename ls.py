@@ -40,24 +40,30 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
         print('[LS]: Error in creating sockets: {} \n'.format(err))
         exit()
 
-    # get the host name and the port number ready to be ready to connect to the TS1 and TS2 servers
-    ts1_addr = socket.gethostbyname(TS1HostName)
-    ts2_addr = socket.gethostbyname(TS2HostName)
+    try:
+        # get the host name and the port number ready to be ready to connect to the TS1 and TS2 servers
+        ts1_addr = socket.gethostbyname(TS1HostName)
+        ts2_addr = socket.gethostbyname(TS2HostName)
 
-    # now connect to the TS1 and TS2 servers
-    ts1_server_binding = (ts1_addr, TS1PortNum)
-    ts2_server_binding = (ts2_addr, TS2PortNum)
-    ts1.settimeout(5)
-    ts2.settimeout(5)
-    ts1.connect(ts1_server_binding)
-    ts2.connect(ts2_server_binding)
-    print("[LS]; Connected to the TS1 and TS2 servers.\n")
+        # now connect to the TS1 and TS2 servers
+        ts1_server_binding = (ts1_addr, TS1PortNum)
+        ts2_server_binding = (ts2_addr, TS2PortNum)
+        ts1.settimeout(5)
+        ts2.settimeout(5)
+        ts1.connect(ts1_server_binding)
+        ts2.connect(ts2_server_binding)
+        print("[LS]; Connected to the TS1 and TS2 servers.\n")
 
-    # send URL to look up
-    message = URL
-    ts1.send(message.encode('utf-8'))
-    ts2.send(message.encode('utf-8'))
-    print("[LS]: Sending host name " + message + " to both the servers for IP lookup ...\n")
+        # send URL to look up
+        message = URL
+        ts1.send(message.encode('utf-8'))
+        ts2.send(message.encode('utf-8'))
+        print("[LS]: Sending host name " + message + " to both the servers for IP lookup ...\n")
+    except Exception as error:
+        print("[LS]: There was an error in connecting to the TS servers. Closing all sockets. Please try again.")
+        ts1.close()
+        ts2.close()
+        raise Exception()
 
     # these are the connections to the TS servers that select() can use to read info from
     inputs = [ts1, ts2]
@@ -121,7 +127,13 @@ while True:
     data_from_client = csockid.recv(500)
     print("[LS]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
-    msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
+    try:
+        msg = connectToTSServers(data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum)
+    except:
+        ls.close()
+        exit()
+
+
 
     if msg == "NOTHING":
         msg = "" + data_from_client + " - " + "Error:HOST NOT FOUND"
