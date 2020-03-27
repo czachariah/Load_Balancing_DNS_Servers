@@ -91,12 +91,16 @@ while True:
     data_from_client = csockid.recv(500)
     print("[TS2]: Connection received. Looking up : {}".format(data_from_client.decode('utf-8')) + " ...")
 
+    found = False
     # look through the table and see if the RS server has the IP address for the host name
     for word in range(count):
         hostToCheck = DNSTable[word][0].lower()
         if data_from_client == hostToCheck:
+            found = True
             msg = DNSTable[word][0] + " " + DNSTable[word][1] + " " + DNSTable[word][2]
-            print("[TS1]; IP found: " + msg + "\n")
-            print("Now sending back to LS")
+            print("[TS2]: IP found: " + msg + " , now sending back to LS ... ")
             csockid.send(msg.encode('utf-8'))
-    print("\n")
+    if not found:
+        print("[TS2]: No match for: " + data_from_client + "\n")
+    else:
+        print("\n")

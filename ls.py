@@ -48,8 +48,8 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
         # now connect to the TS1 and TS2 servers
         ts1_server_binding = (ts1_addr, TS1PortNum)
         ts2_server_binding = (ts2_addr, TS2PortNum)
-        ts1.settimeout(5)
-        ts2.settimeout(5)
+        ts1.settimeout(7)
+        ts2.settimeout(7)
         ts1.connect(ts1_server_binding)
         ts2.connect(ts2_server_binding)
         print("[LS]; Connected to the TS1 and TS2 servers.\n")
@@ -69,7 +69,7 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
     inputs = [ts1, ts2]
     while inputs:
         # select will return 3 types of lists (respectively) : read_from , write_to , exceptions
-        readable, writable, exceptional = select.select(inputs, [], [], 5)
+        readable, writable, exceptional = select.select(inputs, [], [], 7)
         # we only care about reading from the TS sockets, so look into both sockets to get an IP
         for s in readable:
             # trying to get info from TS1
@@ -77,27 +77,22 @@ def connectToTSServers(URL, TS1HostName, TS1PortNum , TS2HostName, TS2PortNum):
                 data = s.recv(1024)
                 if data:
                     print("[LS]: TS1 has returned an IP for " + URL + " : " + data)
+                    ts1.close()
+                    ts2.close()
                     return data
-                else:
-                    readable.remove(s)
-                    # inputs.remove(s)
-                    s.close()
 
             # TS1 did not have the IP, so check TS2
             if s is ts2:
                 data = s.recv(1024)
                 if data:
                     print("[LS]: TS2 has returned an IP for " + URL + " : " + data)
+                    ts1.close()
+                    ts2.close()
                     return data
-                else:
-                    readable.remove(s)
-                    # inputs.remove(s)
-                    s.close()
 
         # both TS1 and TS2 did not have the IP, so after 8 seconds (timeout), these statements send back LS a "NOTHING"
         if not (readable or writable or exceptional):
-            print("[LS]: The connections have timed out.\n"
-                  + "Thus, both TS1 and TS2 do not have an IP for the following URL: " + URL)
+            print("[LS]: The connections have timed out. Both TS1 and TS2 do not have the IP for: " + URL)
             return "NOTHING"
 
 
@@ -142,15 +137,3 @@ while True:
     # send message back to the client
     csockid.send(str(msg))
     print("\n")
-
-
-'''
-# make a thread pool to send the TS servers the URL to look up
-    pool = ThreadPool(processes=10)
-    pool_results = pool.apply_async(connectToTSServers, (data_from_client, sys.argv[2], ts1PortNum, sys.argv[4], ts2PortNum))
-
-    # get the return value
-    msg = pool_results.get()
-
-    # 
-'''
