@@ -12,13 +12,13 @@ READ-ME
         The LS will first receive a URL from the client. That URL is then sent to both
         of the TS servers to query within their respective DNS tables to find an IP address.
 
-        The 'select' command is used by the LS server to wait on the TS servers for 7
+        The 'select' command is used by the LS server to wait on the TS servers for 5
         seconds. This command returns special types of descriptors. These descriptors are used by
         LS to read from. The LS server will first try to read from the TS1 descriptor. If nothing can
         be read from the TS1 server's descriptor, then LS will read from TS2 server's descriptor.
         If one of the servers has sent back an IP, that IP is then returned to the client.
 
-        In the case that both the servers do not send back any info, then after 7 seconds, the select command
+        In the case that both the servers do not send back any info, then after 5 seconds, the select command
         will timeout and throw an appropriate timeout descriptor. LS will check for and catch this descriptor and
         send back a 'Error:HOST NOT FOUND' message to the client.
 
